@@ -1,2 +1,3 @@
-# windows-installer
+# ZetaGlest Windows Installer
+
 The ZetaGlest installer for Windows
