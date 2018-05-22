@@ -2,18 +2,18 @@
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
-using System.Security.Cryptography;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using File = System.IO.File;
-using System.ComponentModel;
 
 namespace ZetaGlestInstaller {
 	/// <summary>
@@ -69,7 +69,11 @@ namespace ZetaGlestInstaller {
 			licenseTextBox.DeselectAll();
 			UIScaler.AddToScaler(this);
 			UIScaler.ExcludeFontScaling(licenseTextBox);
-			pathTextBox.Text = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + Path.DirectorySeparatorChar + "ZetaGlest";
+			pathTextBox.Text = GetDefaultInstallPath();
+		}
+
+		private static string GetDefaultInstallPath() {
+			return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + Path.DirectorySeparatorChar + "ZetaGlest";
 		}
 
 		/// <summary>
@@ -722,7 +726,7 @@ namespace ZetaGlestInstaller {
 					if (!silent)
 						ShowSuccess(true, warnings);
 				} catch (Exception ex) {
-					if (!silent && ShowMessageBox("An error occurred: " + ex.Message + ". Try running as administrator if the issue persists. Do you want to retry?", "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
+					if (!silent && IsHandleCreated && Visible && ShowMessageBox("An error occurred: " + ex.Message + ". Try running as administrator if the issue persists. Do you want to retry?", "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
 						StartUninstall(false);
 				} finally {
 					busy = false;
@@ -775,18 +779,24 @@ namespace ZetaGlestInstaller {
 					Install(path, warnings);
 					busy = false;
 					ShowSuccess(false, warnings);
-					if (warnings.Count == 0)
-						Invoke(new Action(Close));
+					if (warnings.Count == 0) {
+						try {
+							Invoke(new Action(Close));
+						} catch {
+						}
+					}
 				} catch (Exception ex) {
-					switch (ShowMessageBox("An error occurred: " + ex.Message + ". Try running as administrator or changing the install path if the issue persists. Do you want to retry, or clean up?", "Error", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Error)) {
-						case DialogResult.Retry:
-							StartInstall();
-							break;
-						case DialogResult.Abort:
-							StartUninstall(false);
-							break;
-						default:
-							return;
+					if (IsHandleCreated && Visible) {
+						switch (ShowMessageBox("An error occurred: " + ex.Message + ". Try running as administrator or changing the install path if the issue persists. Do you want to retry, or clean up?", "Error", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Error)) {
+							case DialogResult.Retry:
+								StartInstall();
+								break;
+							case DialogResult.Abort:
+								StartUninstall(false);
+								break;
+							default:
+								return;
+						}
 					}
 				} finally {
 					busy = false;
