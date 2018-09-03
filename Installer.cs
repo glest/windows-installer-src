@@ -304,7 +304,7 @@ namespace ZetaGlestInstaller {
 					dataClient.DownloadProgressChanged += callback;
 					dataClient.DownloadFileCompleted += (sender, e) => {
 						if (e.Error == null)
-							SetButtonText("Extracting data...");
+							SetButtonText("Extracting data...\n(takes some time)");
 						else {
 							downloadError = e.Error;
 							binariesResetEvent.Set();
@@ -314,7 +314,7 @@ namespace ZetaGlestInstaller {
 					dataClient.DownloadFileAsync(Config.DataUrl, dataPath);
 				}
 				if (File.Exists(binariesPath) && CalculateMD5(binariesPath) == Config.BinariesMD5) {
-					SetButtonText("Downloading data...");
+					SetButtonText("Downloading data...\n(takes some time)");
 					binariesResetEvent.Set();
 				} else {
 					binariesClient = new WebClient();
@@ -324,7 +324,7 @@ namespace ZetaGlestInstaller {
 						binariesClient.Proxy = null;
 						binariesClient.DownloadFileCompleted += (sender, e) => {
 							if (e.Error == null)
-								SetButtonText("Downloading data...");
+								SetButtonText("Downloading data...\n(takes some time)");
 							else {
 								downloadError = e.Error;
 								dataResetEvent.Set();
@@ -332,7 +332,7 @@ namespace ZetaGlestInstaller {
 							binariesResetEvent.Set();
 						};
 						binariesClient.DownloadFileAsync(Config.BinariesUrl, binariesPath);
-						SetButtonText("Downloading binaries...");
+						SetButtonText("Downloading binaries...\n(takes some time)");
 					} finally {
 						if (binariesClient != null) {
 							binariesClient.Dispose();
@@ -772,7 +772,7 @@ namespace ZetaGlestInstaller {
 				busy = true;
 				string path = null;
 				try {
-					path = StartProgressUI("Installing...");
+					path = StartProgressUI("Installing...\n(takes some time)");
 					StartUninstall(true);
 					busy = true;
 					List<string> warnings = new List<string>();
