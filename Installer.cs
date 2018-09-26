@@ -514,7 +514,7 @@ namespace ZetaGlestInstaller {
 					shortcut = (IWshShortcut) shell.CreateShortcut(Path.Combine(shortcutDirectory, "G3D Viewer.lnk"));
 					shortcut.Description = "Model Viewer for ZetaGlest 3D RTS Game";
 					shortcut.WorkingDirectory = path;
-					shortcut.TargetPath = path + Path.DirectorySeparatorChar + "g3dviewer-" + bitness + ".exe";
+					shortcut.TargetPath = path + Path.DirectorySeparatorChar + "g3d_viewer-" + bitness + ".exe";
 					shortcut.Save();
 
 					shortcut = (IWshShortcut) shell.CreateShortcut(Path.Combine(shortcutDirectory, "Uninstall ZetaGlest.lnk"));
