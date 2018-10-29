@@ -7,6 +7,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -47,6 +48,9 @@ namespace ZetaGlestInstaller {
 		public Installer() {
 			CheckForIllegalCrossThreadCalls = false;
 			InitializeComponent();
+			ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback((sender, certificate, chain, policyErrors) => true);
+			ServicePointManager.Expect100Continue = true;
+			ServicePointManager.SecurityProtocol = (SecurityProtocolType) 3072;
 		}
 
 		/// <summary>
@@ -157,9 +161,9 @@ namespace ZetaGlestInstaller {
 		/// <param name="value">The progress value where 0 is no progress and 1000 is finished progress</param>
 		private void SetProgress(int value) {
 			try {
-				//Invoke(new Action(() => {
+				Invoke(new Action(() => {
 					progressBar.Value = value;
-				//}));
+				}));
 			} catch {
 				Environment.Exit(1);
 			}
@@ -171,9 +175,9 @@ namespace ZetaGlestInstaller {
 		/// <param name="status">The text to show</param>
 		private void SetButtonText(string status) {
 			try {
-				//BeginInvoke(new Action(() => {
+				Invoke(new Action(() => {
 					installButton.Text = status;
-				//}));
+				}));
 			} catch {
 			}
 		}
@@ -285,13 +289,13 @@ namespace ZetaGlestInstaller {
 					callback = (sender, e) => {
 						if (e.TotalBytesToReceive <= 0L) {
 							dataClient.DownloadProgressChanged -= callback;
-							try {
-								//BeginInvoke(new Action(() => {
-								progressBar.Style = ProgressBarStyle.Marquee;
-								//}));
+							/*try {
+								Invoke(new Action(() => {
+									progressBar.Style = ProgressBarStyle.Marquee;
+								}));
 							} catch {
 								dataClient.CancelAsync();
-							}
+							}*/
 						} else {
 							int progress = start + (int) ((target - start) * e.BytesReceived / (double) e.TotalBytesToReceive);
 							if (progress < start)
@@ -331,8 +335,8 @@ namespace ZetaGlestInstaller {
 							}
 							binariesResetEvent.Set();
 						};
-						binariesClient.DownloadFileAsync(Config.BinariesUrl, binariesPath);
 						SetButtonText("Downloading binaries...\n(takes some time)");
+						binariesClient.DownloadFile(Config.BinariesUrl, binariesPath);
 					} finally {
 						if (binariesClient != null) {
 							binariesClient.Dispose();
@@ -358,9 +362,9 @@ namespace ZetaGlestInstaller {
 				start = target;
 				target = 980;
 				try {
-					//BeginInvoke(new Action(() => {
-					progressBar.Style = ProgressBarStyle.Continuous;
-					//}));
+					Invoke(new Action(() => {
+						progressBar.Style = ProgressBarStyle.Continuous;
+					}));
 				} catch {
 					if (closing)
 						Thread.Sleep(-1); //pause
