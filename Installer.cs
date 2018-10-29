@@ -401,6 +401,7 @@ namespace ZetaGlestInstaller {
 						else if (progress > target)
 							progress = target;
 						SetProgress(progress);
+						Application.DoEvents();
 					}
 				};
 				if (!sevenZip.Start())
