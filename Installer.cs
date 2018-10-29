@@ -39,7 +39,7 @@ namespace ZetaGlestInstaller {
 		private static StringBuilder sevenZipOutput;
 		private static ConfigParams Config;
 		private static WebClient binariesClient, dataClient;
-		private static ManualResetEventSlim binariesResetEvent = new ManualResetEventSlim(false), dataResetEvent = new ManualResetEventSlim(false);
+		private static ManualResetEventSlim dataResetEvent = new ManualResetEventSlim(false);
 		private static int lineNumber;
 
 		/// <summary>
@@ -161,11 +161,10 @@ namespace ZetaGlestInstaller {
 		/// <param name="value">The progress value where 0 is no progress and 1000 is finished progress</param>
 		private void SetProgress(int value) {
 			try {
-				Invoke(new Action(() => {
+				//Invoke(new Action(() => {
 					progressBar.Value = value;
-				}));
+				//}));
 			} catch {
-				Environment.Exit(1);
 			}
 		}
 
@@ -175,9 +174,9 @@ namespace ZetaGlestInstaller {
 		/// <param name="status">The text to show</param>
 		private void SetButtonText(string status) {
 			try {
-				Invoke(new Action(() => {
+				//Invoke(new Action(() => {
 					installButton.Text = status;
-				}));
+				//}));
 			} catch {
 			}
 		}
@@ -277,7 +276,6 @@ namespace ZetaGlestInstaller {
 				dataClient.Headers.Add("user-agent", "ZetaGlest");
 				//dataClient.Proxy = GlobalProxySelection.GetEmptyWebProxy();
 				dataClient.Proxy = null;
-				binariesResetEvent.Reset();
 				dataResetEvent.Reset();
 				target = 900;
 				Exception downloadError = null;
@@ -288,14 +286,10 @@ namespace ZetaGlestInstaller {
 					DownloadProgressChangedEventHandler callback = null;
 					callback = (sender, e) => {
 						if (e.TotalBytesToReceive <= 0L) {
-							dataClient.DownloadProgressChanged -= callback;
-							/*try {
-								Invoke(new Action(() => {
-									progressBar.Style = ProgressBarStyle.Marquee;
-								}));
+							try {
+								progressBar.Style = ProgressBarStyle.Marquee;
 							} catch {
-								dataClient.CancelAsync();
-							}*/
+							}
 						} else {
 							int progress = start + (int) ((target - start) * e.BytesReceived / (double) e.TotalBytesToReceive);
 							if (progress < start)
@@ -304,23 +298,22 @@ namespace ZetaGlestInstaller {
 								progress = target;
 							SetProgress(progress);
 						}
+						Application.DoEvents();
 					};
 					dataClient.DownloadProgressChanged += callback;
 					dataClient.DownloadFileCompleted += (sender, e) => {
+						dataClient.DownloadProgressChanged -= callback;
 						if (e.Error == null)
 							SetButtonText("Extracting data...\n(takes some time)");
-						else {
+						else
 							downloadError = e.Error;
-							binariesResetEvent.Set();
-						}
 						dataResetEvent.Set();
 					};
 					dataClient.DownloadFileAsync(Config.DataUrl, dataPath);
 				}
-				if (File.Exists(binariesPath) && CalculateMD5(binariesPath) == Config.BinariesMD5) {
+				if (File.Exists(binariesPath) && CalculateMD5(binariesPath) == Config.BinariesMD5)
 					SetButtonText("Downloading data...\n(takes some time)");
-					binariesResetEvent.Set();
-				} else {
+				else {
 					binariesClient = new WebClient();
 					try {
 						binariesClient.Headers.Add("user-agent", "ZetaGlest");
@@ -333,7 +326,6 @@ namespace ZetaGlestInstaller {
 								downloadError = e.Error;
 								dataResetEvent.Set();
 							}
-							binariesResetEvent.Set();
 						};
 						SetButtonText("Downloading binaries...\n(takes some time)");
 						binariesClient.DownloadFile(Config.BinariesUrl, binariesPath);
@@ -344,7 +336,7 @@ namespace ZetaGlestInstaller {
 						}
 					}
 				}
-				binariesResetEvent.Wait();
+				SetButtonText("Downloading data...\n(takes some time)");
 				if (closing)
 					Thread.Sleep(-1); //pause
 				else if (downloadError != null)
@@ -362,9 +354,9 @@ namespace ZetaGlestInstaller {
 				start = target;
 				target = 980;
 				try {
-					Invoke(new Action(() => {
+					//Invoke(new Action(() => {
 						progressBar.Style = ProgressBarStyle.Continuous;
-					}));
+					//}));
 				} catch {
 					if (closing)
 						Thread.Sleep(-1); //pause
@@ -841,7 +833,6 @@ namespace ZetaGlestInstaller {
 					if (client != null) {
 						try {
 							client.CancelAsync();
-							binariesResetEvent.Wait();
 							Thread.Sleep(1000);
 						} catch {
 						}
