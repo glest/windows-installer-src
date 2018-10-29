@@ -162,7 +162,7 @@ namespace ZetaGlestInstaller {
 		private void SetProgress(int value) {
 			try {
 				//Invoke(new Action(() => {
-					progressBar.Value = value;
+				ThreadPool.QueueUserWorkItem(val => progressBar.Value = (int) val, value);
 				//}));
 			} catch {
 			}
