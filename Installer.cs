@@ -48,9 +48,10 @@ namespace ZetaGlestInstaller {
 		public Installer() {
 			CheckForIllegalCrossThreadCalls = false;
 			InitializeComponent();
-			ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback((sender, certificate, chain, policyErrors) => true);
+			ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, policyErrors) => true;
 			ServicePointManager.Expect100Continue = true;
-			ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | ((SecurityProtocolType) 768) | ((SecurityProtocolType) 3072);
+			ServicePointManager.CheckCertificateRevocationList = false;
+			ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 /*| SecurityProtocolType.Tls | ((SecurityProtocolType) 768) | ((SecurityProtocolType) 3072)*/;
 		}
 
 		/// <summary>
@@ -283,13 +284,13 @@ namespace ZetaGlestInstaller {
 				dataClient.Headers.Add("user-agent", "ZetaGlest");
 				//dataClient.Proxy = GlobalProxySelection.GetEmptyWebProxy();
 				dataClient.Proxy = null;
-				dataResetEvent.Reset();
 				target = 900;
 				Exception downloadError = null;
 				if (File.Exists(dataPath) && CalculateMD5(dataPath) == Config.DataMD5) {
 					dataResetEvent.Set();
 					SetProgress(start = target = 100);
 				} else {
+					dataResetEvent.Reset();
 					DownloadProgressChangedEventHandler callback = null;
 					callback = (sender, e) => {
 						if (e.TotalBytesToReceive <= 0L) {
@@ -326,14 +327,6 @@ namespace ZetaGlestInstaller {
 						binariesClient.Headers.Add("user-agent", "ZetaGlest");
 						//binaryClient.Proxy = GlobalProxySelection.GetEmptyWebProxy();
 						binariesClient.Proxy = null;
-						binariesClient.DownloadFileCompleted += (sender, e) => {
-							if (e.Error == null)
-								SetButtonText("Downloading data...\n(takes some time)");
-							else {
-								downloadError = e.Error;
-								dataResetEvent.Set();
-							}
-						};
 						SetButtonText("Downloading binaries...\n(takes some time)");
 						binariesClient.DownloadFile(Config.BinariesUrl, binariesPath);
 					} finally {
