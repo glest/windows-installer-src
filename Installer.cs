@@ -183,15 +183,17 @@ namespace ZetaGlestInstaller {
 		}
 
 		private static string ExceptionToString(Exception ex) {
-			StringBuilder builder = new StringBuilder();
-			while (ex != null) {
-				builder.Append(ex.Message + " ");
-				ex = ex.InnerException;
-			}
+			if (ex == null)
+				return string.Empty;
 			try {
 				using (StreamWriter log = File.CreateText("error.log"))
 					log.WriteLine(ex.StackTrace);
 			} catch {
+			}
+			StringBuilder builder = new StringBuilder();
+			while (ex != null) {
+				builder.Append(ex.Message + " ");
+				ex = ex.InnerException;
 			}
 			return builder.ToString();
 		}
