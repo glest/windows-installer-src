@@ -88,7 +88,7 @@ namespace ZetaGlestInstaller {
 			try {
 				InitConfig();
 			} catch (Exception ex) {
-				MessageBox.Show("Could not load configuration: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show("Could not load configuration: " + ExceptionToString(ex), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				Close();
 				return;
 			}
@@ -181,10 +181,19 @@ namespace ZetaGlestInstaller {
 			}
 		}
 
+		private static string ExceptionToString(Exception ex) {
+			StringBuilder builder = new StringBuilder();
+			while (ex != null) {
+				builder.Append(ex.Message + " ");
+				ex = ex.InnerException;
+			}
+			return builder.ToString();
+		}
+
 		/// <summary>
 		/// Shows a message box on the form thread
 		/// </summary>
-		private DialogResult ShowMessageBox(string message, string title, MessageBoxButtons buttons = MessageBoxButtons.OK, MessageBoxIcon icon = MessageBoxIcon.Information) {
+		private static DialogResult ShowMessageBox(string message, string title, MessageBoxButtons buttons = MessageBoxButtons.OK, MessageBoxIcon icon = MessageBoxIcon.Information) {
 			try {
 				return /*(DialogResult) Invoke(new Func<object>(() => */MessageBox.Show(message, title, buttons, icon)/*))*/;
 			} catch {
@@ -478,7 +487,7 @@ namespace ZetaGlestInstaller {
 					}
 				}
 			} catch (Exception e) {
-				warnings.Add("Could not write to registry: " + e.Message);
+				warnings.Add("Could not write to registry: " + ExceptionToString(e));
 			}
 		}
 
@@ -518,7 +527,7 @@ namespace ZetaGlestInstaller {
 					shortcut.TargetPath = path + Path.DirectorySeparatorChar + nameof(ZetaGlestInstaller) + ".exe";
 					shortcut.Save();
 				} catch (Exception e) {
-					warnings.Add("Could not add start menu shortcut: " + e.Message);
+					warnings.Add("Could not add start menu shortcut: " + ExceptionToString(e));
 				}
 			}
 			if (desktopShortcutCheckBox.Checked) {
@@ -529,7 +538,7 @@ namespace ZetaGlestInstaller {
 					shortcut.TargetPath = exePath;
 					shortcut.Save();
 				} catch (Exception e) {
-					warnings.Add("Could not add desktop shortcut: " + e.Message);
+					warnings.Add("Could not add desktop shortcut: " + ExceptionToString(e));
 				}
 			}
 		}
@@ -609,22 +618,22 @@ namespace ZetaGlestInstaller {
 			try {
 				DeleteFileIfExists(path + Path.DirectorySeparatorChar + "binaries.zip");
 			} catch (Exception e) {
-				warnings.Add("Could not delete binaries.zip: " + e.Message);
+				warnings.Add("Could not delete binaries.zip: " + ExceptionToString(e));
 			}
 			try {
 				DeleteFileIfExists(path + Path.DirectorySeparatorChar + "data.zip");
 			} catch (Exception e) {
-				warnings.Add("Could not delete data.zip: " + e.Message);
+				warnings.Add("Could not delete data.zip: " + ExceptionToString(e));
 			}
 			try {
 				DeleteFolderIfExists(path + Path.DirectorySeparatorChar + Config.BinariesDir);
 			} catch (Exception e) {
-				warnings.Add("Could not delete " + Config.BinariesDir + ": " + e.Message);
+				warnings.Add("Could not delete " + Config.BinariesDir + ": " + ExceptionToString(e));
 			}
 			try {
 				DeleteFolderIfExists(path + Path.DirectorySeparatorChar + Config.DataDir);
 			} catch (Exception e) {
-				warnings.Add("Could not delete " + Config.DataDir + ": " + e.Message);
+				warnings.Add("Could not delete " + Config.DataDir + ": " + ExceptionToString(e));
 			}
 		}
 
@@ -636,12 +645,12 @@ namespace ZetaGlestInstaller {
 			try {
 				DeleteFolderIfExists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu), "Programs", "ZetaGlest"));
 			} catch (Exception e) {
-				warnings.Add("Could not delete start menu shortcut: " + e.Message);
+				warnings.Add("Could not delete start menu shortcut: " + ExceptionToString(e));
 			}
 			try {
 				DeleteFileIfExists(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + Path.DirectorySeparatorChar + "ZetaGlest.lnk");
 			} catch (Exception e) {
-				warnings.Add("Could not delete desktop shortcut: " + e.Message);
+				warnings.Add("Could not delete desktop shortcut: " + ExceptionToString(e));
 			}
 		}
 
@@ -660,7 +669,7 @@ namespace ZetaGlestInstaller {
 						parent.DeleteSubKeyTree(GetGuidString(), false);
 				}
 			} catch (Exception e) {
-				warnings.Add("Could not delete registry key: " + e.Message);
+				warnings.Add("Could not delete registry key: " + ExceptionToString(e));
 			}
 		}
 
@@ -721,7 +730,7 @@ namespace ZetaGlestInstaller {
 					if (!silent)
 						ShowSuccess(true, warnings);
 				} catch (Exception ex) {
-					if (!silent && IsHandleCreated && Visible && ShowMessageBox("An error occurred: " + ex.Message + ". Try running as administrator if the issue persists. Do you want to retry?", "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
+					if (!silent && IsHandleCreated && Visible && ShowMessageBox("An error occurred: " + ExceptionToString(ex) + ". Try running as administrator if the issue persists. Do you want to retry?", "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
 						StartUninstall(false);
 				} finally {
 					busy = false;
@@ -783,7 +792,7 @@ namespace ZetaGlestInstaller {
 					}
 				} catch (Exception ex) {
 					if (IsHandleCreated && Visible) {
-						switch (ShowMessageBox("An error occurred: " + ex.Message + ". Try running as administrator or changing the install path if the issue persists. Do you want to retry, or clean up?", "Error", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Error)) {
+						switch (ShowMessageBox("An error occurred: " + ExceptionToString(ex) + ". Try running as administrator or changing the install path if the issue persists. Do you want to retry, or clean up?", "Error", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Error)) {
 							case DialogResult.Retry:
 								StartInstall();
 								break;
