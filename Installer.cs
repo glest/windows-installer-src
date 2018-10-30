@@ -186,9 +186,7 @@ namespace ZetaGlestInstaller {
 		/// </summary>
 		private DialogResult ShowMessageBox(string message, string title, MessageBoxButtons buttons = MessageBoxButtons.OK, MessageBoxIcon icon = MessageBoxIcon.Information) {
 			try {
-				return (DialogResult) Invoke(new Func<object>(() => {
-					return MessageBox.Show(message, title, buttons, icon);
-				}));
+				return /*(DialogResult) Invoke(new Func<object>(() => */MessageBox.Show(message, title, buttons, icon)/*))*/;
 			} catch {
 				Environment.Exit(1);
 				return DialogResult.None;
@@ -680,13 +678,13 @@ namespace ZetaGlestInstaller {
 		private void ResetUI() {
 			try {
 				if (IsHandleCreated && Visible) {
-					Invoke(new Action(() => {
+					//Invoke(new Action(() => {
 						installButton.Text = "Agree && Install";
 						installButton.Enabled = true;
 						pathButton.Enabled = true;
 						progressBar.Value = 0;
 						start = 0;
-					}));
+					//}));
 				}
 			} catch {
 				Environment.Exit(0);
@@ -694,14 +692,14 @@ namespace ZetaGlestInstaller {
 		}
 
 		private string StartProgressUI(string message) {
-			return (string) Invoke(new Func<object>(() => {
+			/*return (string) Invoke(new Func<object>(() => {*/
 				progressBar.Value = 0;
 				start = 0;
 				installButton.Enabled = false;
 				pathButton.Enabled = false;
 				installButton.Text = message;
 				return pathTextBox.Text;
-			}));
+			/*}));*/
 		}
 
 		/// <summary>
@@ -714,7 +712,7 @@ namespace ZetaGlestInstaller {
 				string path = null;
 				try {
 					if (silent)
-						path = (string) Invoke(new Func<object>(() => pathTextBox.Text));
+						path = /*(string) Invoke(new Func<object>(() => */pathTextBox.Text/*))*/;
 					else
 						path = StartProgressUI("Uninstalling...");
 					List <string> warnings = new List<string>();
@@ -777,10 +775,11 @@ namespace ZetaGlestInstaller {
 					busy = false;
 					ShowSuccess(false, warnings);
 					if (warnings.Count == 0) {
-						try {
-							Invoke(new Action(Close));
-						} catch {
-						}
+						//try {
+						/*Invoke(new Action(Close));*/
+						Close();
+						//} catch {
+						//}
 					}
 				} catch (Exception ex) {
 					if (IsHandleCreated && Visible) {
