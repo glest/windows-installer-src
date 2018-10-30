@@ -300,7 +300,7 @@ namespace ZetaGlestInstaller {
 					dataResetEvent.Reset();
 					DownloadProgressChangedEventHandler callback = null;
 					callback = (sender, e) => {
-						if (e.TotalBytesToReceive <= 0L) {
+						if (e == null || e.TotalBytesToReceive <= 0L) {
 							try {
 								progressBar.Style = ProgressBarStyle.Marquee;
 							} catch {
@@ -318,7 +318,7 @@ namespace ZetaGlestInstaller {
 					dataClient.DownloadProgressChanged += callback;
 					dataClient.DownloadFileCompleted += (sender, e) => {
 						dataClient.DownloadProgressChanged -= callback;
-						if (e.Error == null)
+						if (e == null || e.Error == null)
 							SetButtonText("Extracting data...\n(takes some time)");
 						else
 							downloadError = e.Error;
