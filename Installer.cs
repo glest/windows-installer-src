@@ -50,7 +50,7 @@ namespace ZetaGlestInstaller {
 			InitializeComponent();
 			ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback((sender, certificate, chain, policyErrors) => true);
 			ServicePointManager.Expect100Continue = true;
-			ServicePointManager.SecurityProtocol = (SecurityProtocolType) 3072;
+			ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | ((SecurityProtocolType) 768) | ((SecurityProtocolType) 3072);
 		}
 
 		/// <summary>
