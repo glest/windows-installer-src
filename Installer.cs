@@ -414,7 +414,9 @@ namespace ZetaGlestInstaller {
 				if (!sevenZip.Start())
 					throw new FileLoadException("7z could not start");
 				sevenZip.BeginOutputReadLine();
-				sevenZip.WaitForExit();
+				do {
+					Application.DoEvents();
+				} while (!sevenZip.WaitForExit(400));
 			} finally {
 				if (sevenZip != null) {
 					sevenZip.Dispose();
