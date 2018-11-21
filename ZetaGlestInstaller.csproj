@@ -47,6 +47,12 @@
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>ZetaGlestInstaller.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -78,6 +84,7 @@
     <None Include="app.config" />
     <None Include="app.manifest" />
     <None Include="banner.png" />
+    <None Include="ZetaGlestInstaller.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="7z.dll">
