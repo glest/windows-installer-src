@@ -124,11 +124,12 @@ namespace ZetaGlestInstaller {
 				KeyValueConfigurationCollection collection = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).AppSettings.Settings;
 				Config = new ConfigParams(collection["version"].Value.Trim(),
 					new Uri(collection["binaries"].Value.Trim()),
-					collection["binaries-md5"].Value.Trim().Replace("-", string.Empty).ToLower(),
 					collection["binaries-dir"].Value.Trim(),
+					collection["binaries-md5"].Value.Trim().Replace("-", string.Empty).ToLower(),
 					new Uri(collection["data"].Value.Trim()),
-					collection["data-md5"].Value.Trim().Replace("-", string.Empty).ToLower(),
 					collection["data-dir"].Value.Trim(),
+					collection["data-md5"].Value.Trim().Replace("-", string.Empty).ToLower(),
+					long.Parse(collection["data-bytes"].Value.Trim()),
 					int.Parse(collection["data-7zlinecount"].Value.Trim()));
 			}
 		}
@@ -299,19 +300,13 @@ namespace ZetaGlestInstaller {
 					dataResetEvent.Reset();
 					DownloadProgressChangedEventHandler callback = null;
 					callback = (sender, e) => {
-						if (e == null || e.TotalBytesToReceive <= 0L) {
-							try {
-								progressBar.Style = ProgressBarStyle.Marquee;
-							} catch {
-							}
-						} else {
-							int progress = start + (int) ((target - start) * e.BytesReceived / (double) e.TotalBytesToReceive);
-							if (progress < start)
-								progress = start;
-							else if (progress > target)
-								progress = target;
-							SetProgress(progress);
-						}
+						long total = e == null || e.TotalBytesToReceive <= 0L ? Config.DataBytes : e.TotalBytesToReceive;
+						int progress = start + (int) ((target - start) * e.BytesReceived / (double) total);
+						if (progress < start)
+							progress = start;
+						else if (progress > target)
+							progress = target;
+						SetProgress(progress);
 						Application.DoEvents();
 					};
 					dataClient.DownloadProgressChanged += callback;
