@@ -517,11 +517,11 @@ namespace ZetaGlestInstaller {
 					shortcut.TargetPath = path + Path.DirectorySeparatorChar + "g3d_viewer-" + bitness + ".exe";
 					shortcut.Save();
 
-					shortcut = (IWshShortcut) shell.CreateShortcut(Path.Combine(shortcutDirectory, "Uninstall ZetaGlest.lnk"));
+					/*shortcut = (IWshShortcut) shell.CreateShortcut(Path.Combine(shortcutDirectory, "Uninstall ZetaGlest.lnk"));
 					shortcut.Description = "Uninstalls ZetaGlest 3D RTS Game";
 					shortcut.WorkingDirectory = path;
 					shortcut.TargetPath = path + Path.DirectorySeparatorChar + nameof(ZetaGlestInstaller) + ".exe";
-					shortcut.Save();
+					shortcut.Save();*/
 				} catch (Exception e) {
 					warnings.Add("Could not add start menu shortcut: " + ExceptionToString(e));
 				}
