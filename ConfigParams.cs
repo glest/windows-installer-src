@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace ZetaGlestInstaller {
+namespace GlestInstaller {
 	/// <summary>
 	/// Holds the configuration parameters loaded from the application configuration file
 	/// </summary>
 	public class ConfigParams {
 		/// <summary>
-		/// The ZetaGlest version that this installer installs
+		/// The version that this installer installs
 		/// </summary>
 		public readonly string Version;
 		/// <summary>
@@ -45,7 +45,7 @@ namespace ZetaGlestInstaller {
 		/// <summary>
 		/// Initializes a new configuration
 		/// </summary>
-		/// <param name="version">The ZetaGlest version that this installer installs</param>
+		/// <param name="version">The version that this installer installs</param>
 		/// <param name="binariesUrl">The url from where the binaries zip file is downloaded</param>
 		/// <param name="binariesDir">The root directory inside the binaries zip file</param>
 		/// <param name="binariesMD5">The binaries zip file MD5 hash</param>

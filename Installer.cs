@@ -15,7 +15,7 @@ using System.Threading;
 using System.Windows.Forms;
 using File = System.IO.File;
 
-namespace ZetaGlestInstaller {
+namespace GlestInstaller {
 	/// <summary>
 	/// The installer window
 	/// </summary>
@@ -77,7 +77,7 @@ namespace ZetaGlestInstaller {
 		}
 
 		private static string GetDefaultInstallPath() {
-			return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + Path.DirectorySeparatorChar + "ZetaGlest";
+			return Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + Path.DirectorySeparatorChar + "Glest";
 		}
 
 		/// <summary>
@@ -104,7 +104,7 @@ namespace ZetaGlestInstaller {
 						installButton.Text = "Agree && Downgrade";
 					else if (update == 0) {
 						installButton.Text = "Agree && Reinstall";
-						if (MessageBox.Show("The same version of ZetaGlest seems to already be installed. Do you want to uninstall?", "Alert", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes) {
+						if (MessageBox.Show("The same version of Glest seems to already be installed. Do you want to uninstall?", "Alert", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes) {
 							Thread thread = new Thread(() => StartUninstall(false));
 							thread.Name = "UninstallThread";
 							thread.IsBackground = true;
@@ -142,7 +142,7 @@ namespace ZetaGlestInstaller {
 				dialog.SelectedPath = pathTextBox.Text;
 				dialog.ShowNewFolderButton = true;
 				if (dialog.ShowDialog() == DialogResult.OK)
-					pathTextBox.Text = dialog.SelectedPath + Path.DirectorySeparatorChar + "ZetaGlest";
+					pathTextBox.Text = dialog.SelectedPath + Path.DirectorySeparatorChar + "Glest";
 			}
 		}
 
@@ -220,10 +220,10 @@ namespace ZetaGlestInstaller {
 			StringBuilder message = new StringBuilder();
 			MessageBoxIcon icon;
 			if (warnings.Count == 0) {
-				message.Append("ZetaGlest" + (uninstall ? " un" : " ") + "installed successfully!");
+				message.Append("Glest" + (uninstall ? " un" : " ") + "installed successfully!");
 				icon = MessageBoxIcon.Information;
 			} else {
-				message.Append("ZetaGlest is now" + (uninstall ? " un" : " ") + "installed, although ");
+				message.Append("Glest is now" + (uninstall ? " un" : " ") + "installed, although ");
 				if (warnings.Count == 1)
 					message.Append("some errors were");
 				else
@@ -250,7 +250,7 @@ namespace ZetaGlestInstaller {
 				File.Move(file, target);
 			}
 			string location = Assembly.GetEntryAssembly().Location;
-			target = path + Path.DirectorySeparatorChar + nameof(ZetaGlestInstaller) + ".exe";
+			target = path + Path.DirectorySeparatorChar + nameof(GlestInstaller) + ".exe";
 			File.Copy(location, target, true);
 			File.Copy(Path.ChangeExtension(location, ".exe.config"), target + ".config", true);
 		}
@@ -282,13 +282,13 @@ namespace ZetaGlestInstaller {
 		/// <summary>
 		/// Downloads the archives and extracts and configures the files
 		/// </summary>
-		/// <param name="path">The path to install ZetaGlest into</param>
+		/// <param name="path">The path to install into</param>
 		public void DownloadAndExtract(string path) {
 			string binariesPath = path + Path.DirectorySeparatorChar + "binaries.zip";
 			string dataPath = path + Path.DirectorySeparatorChar + "data.zip";
 			dataClient = new WebClient();
 			try {
-				dataClient.Headers.Add("user-agent", "ZetaGlest");
+				dataClient.Headers.Add("user-agent", "Glest");
 				//dataClient.Proxy = GlobalProxySelection.GetEmptyWebProxy();
 				dataClient.Proxy = null;
 				target = 900;
@@ -325,7 +325,7 @@ namespace ZetaGlestInstaller {
 				else {
 					binariesClient = new WebClient();
 					try {
-						binariesClient.Headers.Add("user-agent", "ZetaGlest");
+						binariesClient.Headers.Add("user-agent", "Glest");
 						//binaryClient.Proxy = GlobalProxySelection.GetEmptyWebProxy();
 						binariesClient.Proxy = null;
 						SetButtonText("Downloading binaries...\n(takes some time)");
@@ -454,14 +454,14 @@ namespace ZetaGlestInstaller {
 							 parent.CreateSubKey(guidString);
 						if (key == null)
 							throw new KeyNotFoundException(string.Format("Unable to create uninstaller '{0}\\{1}'", UninstallKeyPath, guidString));
-						string uninstallerPath = "\"" + path + "\\" + nameof(ZetaGlestInstaller) + ".exe\"";
-						key.SetValue("DisplayName", "ZetaGlest");
+						string uninstallerPath = "\"" + path + "\\" + nameof(GlestInstaller) + ".exe\"";
+						key.SetValue("DisplayName", "Glest");
 						key.SetValue("ApplicationVersion", Config.Version);
-						key.SetValue("Publisher", "ZetaGlest Team");
+						key.SetValue("Publisher", "Glest Team");
 						key.SetValue("DisplayIcon", uninstallerPath);
 						key.SetValue("DisplayVersion", Config.Version);
-						key.SetValue("URLInfoAbout", "https://zetaglest.github.io/");
-						key.SetValue("Contact", "zetaglest@gmail.com");
+						key.SetValue("URLInfoAbout", "https://glest.github.io/");
+						key.SetValue("Contact", "mathusum.mut@gmail.com");
 						key.SetValue("InstallDate", DateTime.Now.ToString("yyyyMMdd"));
 						key.SetValue("UninstallString", uninstallerPath);
 						key.SetValue("EstimatedSize", (int) (CalcutateDirectorySize(new DirectoryInfo(path)) / 1024ul), RegistryValueKind.DWord);
@@ -493,34 +493,34 @@ namespace ZetaGlestInstaller {
 		/// <param name="path">The path to the installed files</param>
 		/// <param name="warnings">The warnings list to add to if an error happens</param>
 		public void CreateShortcuts(string path, List<string> warnings) {
-			string exePath = path + Path.DirectorySeparatorChar + "zetaglest-" + bitness + ".exe";
+			string exePath = path + Path.DirectorySeparatorChar + "glest-" + bitness + ".exe";
 			if (startMenuShortcutCheckBox.Checked) {
 				try {
-					string shortcutDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu), "Programs", "ZetaGlest");
+					string shortcutDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu), "Programs", "Glest");
 					Directory.CreateDirectory(shortcutDirectory);
 					WshShell shell = new WshShell();
-					IWshShortcut shortcut = (IWshShortcut) shell.CreateShortcut(Path.Combine(shortcutDirectory, "ZetaGlest.lnk"));
-					shortcut.Description = "ZetaGlest 3D RTS Game";
+					IWshShortcut shortcut = (IWshShortcut) shell.CreateShortcut(Path.Combine(shortcutDirectory, "Glest.lnk"));
+					shortcut.Description = "Glest 3D RTS Game";
 					shortcut.WorkingDirectory = path;
 					shortcut.TargetPath = exePath;
 					shortcut.Save();
 
 					shortcut = (IWshShortcut) shell.CreateShortcut(Path.Combine(shortcutDirectory, "Map Editor.lnk"));
-					shortcut.Description = "Map Editor for ZetaGlest 3D RTS Game";
+					shortcut.Description = "Map Editor for Glest 3D RTS Game";
 					shortcut.WorkingDirectory = path;
 					shortcut.TargetPath = path + Path.DirectorySeparatorChar + "map_editor-" + bitness + ".exe";
 					shortcut.Save();
 
 					shortcut = (IWshShortcut) shell.CreateShortcut(Path.Combine(shortcutDirectory, "G3D Viewer.lnk"));
-					shortcut.Description = "Model Viewer for ZetaGlest 3D RTS Game";
+					shortcut.Description = "Model Viewer for Glest 3D RTS Game";
 					shortcut.WorkingDirectory = path;
 					shortcut.TargetPath = path + Path.DirectorySeparatorChar + "g3d_viewer-" + bitness + ".exe";
 					shortcut.Save();
 
-					/*shortcut = (IWshShortcut) shell.CreateShortcut(Path.Combine(shortcutDirectory, "Uninstall ZetaGlest.lnk"));
-					shortcut.Description = "Uninstalls ZetaGlest 3D RTS Game";
+					/*shortcut = (IWshShortcut) shell.CreateShortcut(Path.Combine(shortcutDirectory, "Uninstall Glest.lnk"));
+					shortcut.Description = "Uninstalls Glest 3D RTS Game";
 					shortcut.WorkingDirectory = path;
-					shortcut.TargetPath = path + Path.DirectorySeparatorChar + nameof(ZetaGlestInstaller) + ".exe";
+					shortcut.TargetPath = path + Path.DirectorySeparatorChar + nameof(GlestInstaller) + ".exe";
 					shortcut.Save();*/
 				} catch (Exception e) {
 					warnings.Add("Could not add start menu shortcut: " + ExceptionToString(e));
@@ -528,8 +528,8 @@ namespace ZetaGlestInstaller {
 			}
 			if (desktopShortcutCheckBox.Checked) {
 				try {
-					IWshShortcut shortcut = (IWshShortcut) new WshShell().CreateShortcut(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + Path.DirectorySeparatorChar + "ZetaGlest.lnk");
-					shortcut.Description = "ZetaGlest 3D RTS Game";
+					IWshShortcut shortcut = (IWshShortcut) new WshShell().CreateShortcut(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + Path.DirectorySeparatorChar + "Glest.lnk");
+					shortcut.Description = "Glest 3D RTS Game";
 					shortcut.WorkingDirectory = path;
 					shortcut.TargetPath = exePath;
 					shortcut.Save();
@@ -540,9 +540,9 @@ namespace ZetaGlestInstaller {
 		}
 
 		/// <summary>
-		/// Installs ZetaGlest to the specified path
+		/// Installs into to the specified path
 		/// </summary>
-		/// <param name="path">The path to install ZetaGlest in</param>
+		/// <param name="path">The path to install in</param>
 		/// <param name="warnings">The warnings list to add to if an error happens</param>
 		public void Install(string path, List<string> warnings) {
 			Directory.CreateDirectory(path);
@@ -634,17 +634,17 @@ namespace ZetaGlestInstaller {
 		}
 
 		/// <summary>
-		/// Deletes the ZetaGlest shortcuts
+		/// Deletes the shortcuts
 		/// </summary>
 		/// <param name="warnings">The warnings list to add to if an error happens</param>
 		public static void DeleteShortcuts(List<string> warnings) {
 			try {
-				DeleteFolderIfExists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu), "Programs", "ZetaGlest"));
+				DeleteFolderIfExists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu), "Programs", "Glest"));
 			} catch (Exception e) {
 				warnings.Add("Could not delete start menu shortcut: " + ExceptionToString(e));
 			}
 			try {
-				DeleteFileIfExists(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + Path.DirectorySeparatorChar + "ZetaGlest.lnk");
+				DeleteFileIfExists(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + Path.DirectorySeparatorChar + "Glest.lnk");
 			} catch (Exception e) {
 				warnings.Add("Could not delete desktop shortcut: " + ExceptionToString(e));
 			}
@@ -655,7 +655,7 @@ namespace ZetaGlestInstaller {
 		}
 
 		/// <summary>
-		/// Deletes the ZetaGlest registry keys
+		/// Deletes the egistry keys
 		/// </summary>
 		/// <param name="warnings">The warnings list to add to if an error happens</param>
 		public static void DeleteRegistryKeys(List<string> warnings) {
@@ -737,9 +737,9 @@ namespace ZetaGlestInstaller {
 		}
 
 		/// <summary>
-		/// Returns the path where ZetaGlest is installed if it is found
+		/// Returns the path where it is installed if it is found
 		/// </summary>
-		/// <param name="version">The currently installed version of ZetaGlest</param>
+		/// <param name="version">The currently installed version</param>
 		public static string CheckIsInstalled(out string version) {
 			version = null;
 			try {
@@ -938,7 +938,7 @@ namespace ZetaGlestInstaller {
 			// 
 			// pictureBox1
 			// 
-			this.pictureBox1.BackgroundImage = global::ZetaGlestInstaller.Properties.Resources.banner;
+			this.pictureBox1.BackgroundImage = global::GlestInstaller.Properties.Resources.banner;
 			this.pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
 			this.pictureBox1.Location = new System.Drawing.Point(3, 12);
 			this.pictureBox1.Name = "pictureBox1";
@@ -1014,7 +1014,7 @@ namespace ZetaGlestInstaller {
 			this.MinimumSize = new System.Drawing.Size(450, 480);
 			this.Name = "Installer";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			this.Text = "ZetaGlest Installer";
+			this.Text = "Glest Installer";
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();

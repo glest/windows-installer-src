@@ -7,8 +7,8 @@
     <ProjectGuid>{21F8EF2E-1A0C-478C-B0FE-88DD2AB7F82F}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ZetaGlestInstaller</RootNamespace>
-    <AssemblyName>ZetaGlestInstaller</AssemblyName>
+    <RootNamespace>GlestInstaller</RootNamespace>
+    <AssemblyName>GlestInstaller</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>
@@ -36,13 +36,13 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <CodeAnalysisIgnoreGeneratedCode>false</CodeAnalysisIgnoreGeneratedCode>
     <NoWarn>IDE0017, IDE1006, CC0001, CC0003, CC0004, CC0008, CC0013, CC0014, CC0015, CC0017, CC0026, CC0031, CC0037, CC0048, CC0052, CC0060, CC0065, CC0072, CC0074, CC0090, CC0097, CC0105</NoWarn>
-    <DocumentationFile>bin\Release\ZetaGlestInstaller.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\GlestInstaller.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ZetaGlestInstaller.Installer</StartupObject>
+    <StartupObject>GlestInstaller.Installer</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>zetaglest.ico</ApplicationIcon>
+    <ApplicationIcon>glest.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -51,7 +51,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>ZetaGlestInstaller.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>GlestInstaller.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -84,7 +84,7 @@
     <None Include="app.config" />
     <None Include="app.manifest" />
     <None Include="banner.png" />
-    <None Include="ZetaGlestInstaller.pfx" />
+    <None Include="GlestInstaller.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="7z.dll">
@@ -93,7 +93,7 @@
     <Content Include="7z.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="zetaglest.ico" />
+    <Content Include="glest.ico" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="IWshRuntimeLibrary">
