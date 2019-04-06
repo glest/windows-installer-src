@@ -244,7 +244,7 @@ namespace GlestInstaller {
 		/// <param name="path">The path that contains the extracted binary archive</param>
 		public static void ConfigureBinaries(string path) {
 			string target;
-			foreach (string file in Directory.GetFiles(path + Path.DirectorySeparatorChar + Config.BinariesDir + Path.DirectorySeparatorChar + "vs2017", "*", SearchOption.AllDirectories)) {
+			foreach (string file in Directory.GetFiles(path + Path.DirectorySeparatorChar + Config.BinariesDir + Path.DirectorySeparatorChar + "vs2019", "*", SearchOption.AllDirectories)) {
 				target = path + Path.DirectorySeparatorChar + Path.GetFileName(file);
 				DeleteFileIfExists(target);
 				File.Move(file, target);
