@@ -42,26 +42,34 @@ namespace GlestInstaller {
 		/// </summary>
 		public readonly int Data7zLineCount;
 
-		/// <summary>
-		/// Initializes a new configuration
-		/// </summary>
-		/// <param name="version">The version that this installer installs</param>
-		/// <param name="binariesUrl">The url from where the binaries zip file is downloaded</param>
-		/// <param name="binariesDir">The root directory inside the binaries zip file</param>
-		/// <param name="binariesMD5">The binaries zip file MD5 hash</param>
-		/// <param name="dataUrl">The url from where the data zip file is downloaded</param>
-		/// <param name="dataDir">The root directory inside the data zip file</param>
-		/// <param name="dataMD5">The data zip file MD5 hash</param>
-		/// <param name="dataBytes">The number of bytes in the data zip file</param>
-		/// <param name="data7zLineCount">The target output line count of 7z</param>
-		public ConfigParams(string version, Uri binariesUrl, string binariesDir, string binariesMD5, Uri dataUrl, string dataDir, string dataMD5, long dataBytes, int data7zLineCount) {
+        public readonly Uri DevUrl;
+
+        public readonly string DevDir;
+
+        /// <summary>
+        /// Initializes a new configuration
+        /// </summary>
+        /// <param name="version">The version that this installer installs</param>
+        /// <param name="binariesUrl">The url from where the binaries zip file is downloaded</param>
+        /// <param name="binariesDir">The root directory inside the binaries zip file</param>
+        /// <param name="binariesMD5">The binaries zip file MD5 hash</param>
+        /// <param name="dataUrl">The url from where the data zip file is downloaded</param>
+        /// <param name="dataDir">The root directory inside the data zip file</param>
+        /// <param name="dataMD5">The data zip file MD5 hash</param>
+        /// <param name="dataBytes">The number of bytes in the data zip file</param>
+        /// <param name="data7zLineCount">The target output line count of 7z</param>
+        public ConfigParams(string version, Uri binariesUrl, string binariesDir, string binariesMD5, Uri devUrl, string devDir, Uri dataUrl, string dataDir, string dataMD5, long dataBytes, int data7zLineCount) {
 			Version = version;
 			BinariesUrl = binariesUrl;
 			BinariesDir = binariesDir;
+            DevUrl = devUrl;
+            DevDir = devDir;
 			BinariesMD5 = binariesMD5;
 			DataUrl = dataUrl;
 			DataDir = dataDir;
-			DataMD5 = dataMD5;
+            DevUrl = devUrl;
+            DevDir = devDir;
+            DataMD5 = dataMD5;
 			DataBytes = dataBytes;
 			Data7zLineCount = data7zLineCount;
 		}

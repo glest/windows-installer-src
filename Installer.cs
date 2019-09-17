@@ -39,7 +39,8 @@ namespace GlestInstaller {
 		private static ConfigParams Config;
 		private static WebClient binariesClient, dataClient;
 		private static ManualResetEventSlim dataResetEvent = new ManualResetEventSlim(false);
-		private static int lineNumber;
+        private CheckBox developmentVersionCheckBox;
+        private static int lineNumber;
 
 		/// <summary>
 		/// Constructs the installer form
@@ -126,7 +127,9 @@ namespace GlestInstaller {
 					new Uri(collection["binaries"].Value.Trim()),
 					collection["binaries-dir"].Value.Trim(),
 					collection["binaries-md5"].Value.Trim().Replace("-", string.Empty).ToLower(),
-					new Uri(collection["data"].Value.Trim()),
+                    new Uri(collection["binaries-dev"].Value.Trim()),
+                    collection["binaries-dev-dir"].Value.Trim(),
+                    new Uri(collection["data"].Value.Trim()),
 					collection["data-dir"].Value.Trim(),
 					collection["data-md5"].Value.Trim().Replace("-", string.Empty).ToLower(),
 					long.Parse(collection["data-bytes"].Value.Trim()),
@@ -242,9 +245,18 @@ namespace GlestInstaller {
 		/// Configures the binaries to their respective path
 		/// </summary>
 		/// <param name="path">The path that contains the extracted binary archive</param>
-		public static void ConfigureBinaries(string path) {
+		public static void ConfigureBinaries(string path, bool devVersion) {
 			string target;
-			foreach (string file in Directory.GetFiles(path + Path.DirectorySeparatorChar + Config.BinariesDir + Path.DirectorySeparatorChar + "vs2019", "*", SearchOption.AllDirectories)) {
+            string dir;
+            if (devVersion)
+            {
+                dir = Config.DevDir;
+            }
+            else
+            {
+                dir = Config.BinariesDir;
+            }
+			foreach (string file in Directory.GetFiles(path + Path.DirectorySeparatorChar + dir + Path.DirectorySeparatorChar + "vs2019", "*", SearchOption.AllDirectories)) {
 				target = path + Path.DirectorySeparatorChar + Path.GetFileName(file);
 				DeleteFileIfExists(target);
 				File.Move(file, target);
@@ -320,7 +332,7 @@ namespace GlestInstaller {
 					};
 					dataClient.DownloadFileAsync(Config.DataUrl, dataPath);
 				}
-				if (File.Exists(binariesPath) && CalculateMD5(binariesPath) == Config.BinariesMD5)
+				if (File.Exists(binariesPath) && ((CalculateMD5(binariesPath) == Config.BinariesMD5) || developmentVersionCheckBox.Checked))
 					SetButtonText("Downloading data...\n(takes some time)");
 				else {
 					binariesClient = new WebClient();
@@ -329,8 +341,15 @@ namespace GlestInstaller {
 						//binaryClient.Proxy = GlobalProxySelection.GetEmptyWebProxy();
 						binariesClient.Proxy = null;
 						SetButtonText("Downloading binaries...\n(takes some time)");
-						binariesClient.DownloadFile(Config.BinariesUrl, binariesPath);
-					} finally {
+                        if (developmentVersionCheckBox.Checked)
+                        {
+                            binariesClient.DownloadFile(Config.DevUrl, binariesPath);
+                        }
+                        else
+                        {
+                            binariesClient.DownloadFile(Config.BinariesUrl, binariesPath);
+                        }
+                    } finally {
 						if (binariesClient != null) {
 							binariesClient.Dispose();
 							binariesClient = null;
@@ -342,10 +361,10 @@ namespace GlestInstaller {
 					Thread.Sleep(-1); //pause
 				else if (downloadError != null)
 					throw downloadError;
-				else if (CalculateMD5(binariesPath) != Config.BinariesMD5)
+				else if ((CalculateMD5(binariesPath) != Config.BinariesMD5) && !developmentVersionCheckBox.Checked)
 					throw new WarningException("MD5 hash of binaries.zip does not match the one specified in config file");
 				Extract(binariesPath, path, false);
-				ConfigureBinaries(path);
+				ConfigureBinaries(path, developmentVersionCheckBox.Checked);
 				dataResetEvent.Wait();
 				if (downloadError != null)
 					throw downloadError;
@@ -626,7 +645,15 @@ namespace GlestInstaller {
 			} catch (Exception e) {
 				warnings.Add("Could not delete " + Config.BinariesDir + ": " + ExceptionToString(e));
 			}
-			try {
+            try
+            {
+                DeleteFolderIfExists(path + Path.DirectorySeparatorChar + Config.DevDir);
+            }
+            catch (Exception e)
+            {
+                warnings.Add("Could not delete " + Config.DevDir + ": " + ExceptionToString(e));
+            }
+            try {
 				DeleteFolderIfExists(path + Path.DirectorySeparatorChar + Config.DataDir);
 			} catch (Exception e) {
 				warnings.Add("Could not delete " + Config.DataDir + ": " + ExceptionToString(e));
@@ -806,11 +833,16 @@ namespace GlestInstaller {
 			}
 		}
 
-		/// <summary>
-		/// Called when the window is being closed
-		/// </summary>
-		/// <param name="e">Whether to cancel the window close event</param>
-		protected override void OnClosing(CancelEventArgs e) {
+        //private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        //{
+        //    Console.WriteLine("is checked: {}", developmentVersionCheckBox.Checked);
+        //}
+
+        /// <summary>
+        /// Called when the window is being closed
+        /// </summary>
+        /// <param name="e">Whether to cancel the window close event</param>
+        protected override void OnClosing(CancelEventArgs e) {
 			if (busy) {
 				if (MessageBox.Show("The current process is not finished yet. Are you sure you want to exit?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes) {
 					closing = true;
@@ -866,158 +898,171 @@ namespace GlestInstaller {
 		/// the contents of this method with the code editor.
 		/// </summary>
 		private void InitializeComponent() {
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Installer));
-			this.licenseTextBox = new System.Windows.Forms.RichTextBox();
-			this.installButton = new System.Windows.Forms.Button();
-			this.pathTextBox = new System.Windows.Forms.TextBox();
-			this.label2 = new System.Windows.Forms.Label();
-			this.pathButton = new System.Windows.Forms.Button();
-			this.pictureBox1 = new System.Windows.Forms.PictureBox();
-			this.desktopShortcutCheckBox = new System.Windows.Forms.CheckBox();
-			this.startMenuShortcutCheckBox = new System.Windows.Forms.CheckBox();
-			this.networkFixCheckBox = new System.Windows.Forms.CheckBox();
-			this.progressBar = new System.Windows.Forms.ProgressBar();
-			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
-			this.SuspendLayout();
-			// 
-			// licenseTextBox
-			// 
-			this.licenseTextBox.BackColor = System.Drawing.Color.White;
-			this.licenseTextBox.ForeColor = System.Drawing.Color.Black;
-			this.licenseTextBox.Location = new System.Drawing.Point(12, 253);
-			this.licenseTextBox.Margin = new System.Windows.Forms.Padding(8);
-			this.licenseTextBox.Name = "licenseTextBox";
-			this.licenseTextBox.ReadOnly = true;
-			this.licenseTextBox.Size = new System.Drawing.Size(431, 200);
-			this.licenseTextBox.TabIndex = 0;
-			this.licenseTextBox.Text = resources.GetString("licenseTextBox.Text");
-			// 
-			// installButton
-			// 
-			this.installButton.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.installButton.ForeColor = System.Drawing.Color.Black;
-			this.installButton.Location = new System.Drawing.Point(283, 12);
-			this.installButton.Name = "installButton";
-			this.installButton.Size = new System.Drawing.Size(160, 121);
-			this.installButton.TabIndex = 3;
-			this.installButton.Text = "Agree && Install";
-			this.installButton.UseVisualStyleBackColor = true;
-			this.installButton.Click += new System.EventHandler(this.installButton_Click);
-			// 
-			// pathTextBox
-			// 
-			this.pathTextBox.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.pathTextBox.Location = new System.Drawing.Point(66, 150);
-			this.pathTextBox.Multiline = true;
-			this.pathTextBox.Name = "pathTextBox";
-			this.pathTextBox.ReadOnly = true;
-			this.pathTextBox.Size = new System.Drawing.Size(319, 23);
-			this.pathTextBox.TabIndex = 4;
-			// 
-			// label2
-			// 
-			this.label2.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label2.Location = new System.Drawing.Point(10, 150);
-			this.label2.Name = "label2";
-			this.label2.Size = new System.Drawing.Size(50, 23);
-			this.label2.TabIndex = 5;
-			this.label2.Text = "Path:";
-			this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-			// 
-			// pathButton
-			// 
-			this.pathButton.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.pathButton.ForeColor = System.Drawing.Color.Black;
-			this.pathButton.Location = new System.Drawing.Point(396, 150);
-			this.pathButton.Name = "pathButton";
-			this.pathButton.Size = new System.Drawing.Size(45, 23);
-			this.pathButton.TabIndex = 6;
-			this.pathButton.Text = "···";
-			this.pathButton.UseVisualStyleBackColor = true;
-			this.pathButton.Click += new System.EventHandler(this.pathButton_Click);
-			// 
-			// pictureBox1
-			// 
-			this.pictureBox1.BackgroundImage = global::GlestInstaller.Properties.Resources.banner;
-			this.pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-			this.pictureBox1.Location = new System.Drawing.Point(3, 12);
-			this.pictureBox1.Name = "pictureBox1";
-			this.pictureBox1.Size = new System.Drawing.Size(264, 121);
-			this.pictureBox1.TabIndex = 2;
-			this.pictureBox1.TabStop = false;
-			// 
-			// desktopShortcutCheckBox
-			// 
-			this.desktopShortcutCheckBox.Checked = true;
-			this.desktopShortcutCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.desktopShortcutCheckBox.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.desktopShortcutCheckBox.Location = new System.Drawing.Point(15, 188);
-			this.desktopShortcutCheckBox.Name = "desktopShortcutCheckBox";
-			this.desktopShortcutCheckBox.Size = new System.Drawing.Size(128, 24);
-			this.desktopShortcutCheckBox.TabIndex = 7;
-			this.desktopShortcutCheckBox.Text = "Desktop Shortcut";
-			this.desktopShortcutCheckBox.UseVisualStyleBackColor = true;
-			// 
-			// startMenuShortcutCheckBox
-			// 
-			this.startMenuShortcutCheckBox.Checked = true;
-			this.startMenuShortcutCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.startMenuShortcutCheckBox.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.startMenuShortcutCheckBox.Location = new System.Drawing.Point(149, 191);
-			this.startMenuShortcutCheckBox.Name = "startMenuShortcutCheckBox";
-			this.startMenuShortcutCheckBox.Size = new System.Drawing.Size(139, 19);
-			this.startMenuShortcutCheckBox.TabIndex = 8;
-			this.startMenuShortcutCheckBox.Text = "Start Menu Shortcut";
-			this.startMenuShortcutCheckBox.UseVisualStyleBackColor = true;
-			// 
-			// networkFixCheckBox
-			// 
-			this.networkFixCheckBox.Checked = true;
-			this.networkFixCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.networkFixCheckBox.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.networkFixCheckBox.Location = new System.Drawing.Point(294, 191);
-			this.networkFixCheckBox.Name = "networkFixCheckBox";
-			this.networkFixCheckBox.Size = new System.Drawing.Size(140, 19);
-			this.networkFixCheckBox.TabIndex = 9;
-			this.networkFixCheckBox.Text = "Network Throttle Fix";
-			this.networkFixCheckBox.UseVisualStyleBackColor = true;
-			// 
-			// progressBar
-			// 
-			this.progressBar.Location = new System.Drawing.Point(12, 219);
-			this.progressBar.Maximum = 1000;
-			this.progressBar.Name = "progressBar";
-			this.progressBar.Size = new System.Drawing.Size(431, 23);
-			this.progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
-			this.progressBar.TabIndex = 10;
-			// 
-			// Installer
-			// 
-			this.AcceptButton = this.installButton;
-			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.BackColor = System.Drawing.Color.MidnightBlue;
-			this.ClientSize = new System.Drawing.Size(453, 463);
-			this.Controls.Add(this.progressBar);
-			this.Controls.Add(this.networkFixCheckBox);
-			this.Controls.Add(this.startMenuShortcutCheckBox);
-			this.Controls.Add(this.desktopShortcutCheckBox);
-			this.Controls.Add(this.pathButton);
-			this.Controls.Add(this.label2);
-			this.Controls.Add(this.pathTextBox);
-			this.Controls.Add(this.installButton);
-			this.Controls.Add(this.pictureBox1);
-			this.Controls.Add(this.licenseTextBox);
-			this.ForeColor = System.Drawing.Color.White;
-			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-			this.MaximizeBox = false;
-			this.MinimumSize = new System.Drawing.Size(450, 480);
-			this.Name = "Installer";
-			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			this.Text = "Glest Installer";
-			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
-			this.ResumeLayout(false);
-			this.PerformLayout();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Installer));
+            this.licenseTextBox = new System.Windows.Forms.RichTextBox();
+            this.installButton = new System.Windows.Forms.Button();
+            this.pathTextBox = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.pathButton = new System.Windows.Forms.Button();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.desktopShortcutCheckBox = new System.Windows.Forms.CheckBox();
+            this.startMenuShortcutCheckBox = new System.Windows.Forms.CheckBox();
+            this.networkFixCheckBox = new System.Windows.Forms.CheckBox();
+            this.progressBar = new System.Windows.Forms.ProgressBar();
+            this.developmentVersionCheckBox = new System.Windows.Forms.CheckBox();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.SuspendLayout();
+            // 
+            // licenseTextBox
+            // 
+            this.licenseTextBox.BackColor = System.Drawing.Color.White;
+            this.licenseTextBox.ForeColor = System.Drawing.Color.Black;
+            this.licenseTextBox.Location = new System.Drawing.Point(12, 253);
+            this.licenseTextBox.Margin = new System.Windows.Forms.Padding(8);
+            this.licenseTextBox.Name = "licenseTextBox";
+            this.licenseTextBox.ReadOnly = true;
+            this.licenseTextBox.Size = new System.Drawing.Size(431, 200);
+            this.licenseTextBox.TabIndex = 0;
+            this.licenseTextBox.Text = resources.GetString("licenseTextBox.Text");
+            // 
+            // installButton
+            // 
+            this.installButton.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.installButton.ForeColor = System.Drawing.Color.Black;
+            this.installButton.Location = new System.Drawing.Point(283, 12);
+            this.installButton.Name = "installButton";
+            this.installButton.Size = new System.Drawing.Size(160, 98);
+            this.installButton.TabIndex = 3;
+            this.installButton.Text = "Agree && Install";
+            this.installButton.UseVisualStyleBackColor = true;
+            this.installButton.Click += new System.EventHandler(this.installButton_Click);
+            // 
+            // pathTextBox
+            // 
+            this.pathTextBox.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.pathTextBox.Location = new System.Drawing.Point(66, 150);
+            this.pathTextBox.Multiline = true;
+            this.pathTextBox.Name = "pathTextBox";
+            this.pathTextBox.ReadOnly = true;
+            this.pathTextBox.Size = new System.Drawing.Size(319, 23);
+            this.pathTextBox.TabIndex = 4;
+            // 
+            // label2
+            // 
+            this.label2.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Location = new System.Drawing.Point(10, 150);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(50, 23);
+            this.label2.TabIndex = 5;
+            this.label2.Text = "Path:";
+            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // pathButton
+            // 
+            this.pathButton.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.pathButton.ForeColor = System.Drawing.Color.Black;
+            this.pathButton.Location = new System.Drawing.Point(396, 150);
+            this.pathButton.Name = "pathButton";
+            this.pathButton.Size = new System.Drawing.Size(45, 23);
+            this.pathButton.TabIndex = 6;
+            this.pathButton.Text = "···";
+            this.pathButton.UseVisualStyleBackColor = true;
+            this.pathButton.Click += new System.EventHandler(this.pathButton_Click);
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.BackgroundImage = global::GlestInstaller.Properties.Resources.banner;
+            this.pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.pictureBox1.Location = new System.Drawing.Point(3, 12);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(264, 121);
+            this.pictureBox1.TabIndex = 2;
+            this.pictureBox1.TabStop = false;
+            // 
+            // desktopShortcutCheckBox
+            // 
+            this.desktopShortcutCheckBox.Checked = true;
+            this.desktopShortcutCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.desktopShortcutCheckBox.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.desktopShortcutCheckBox.Location = new System.Drawing.Point(15, 188);
+            this.desktopShortcutCheckBox.Name = "desktopShortcutCheckBox";
+            this.desktopShortcutCheckBox.Size = new System.Drawing.Size(128, 24);
+            this.desktopShortcutCheckBox.TabIndex = 7;
+            this.desktopShortcutCheckBox.Text = "Desktop Shortcut";
+            this.desktopShortcutCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // startMenuShortcutCheckBox
+            // 
+            this.startMenuShortcutCheckBox.Checked = true;
+            this.startMenuShortcutCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.startMenuShortcutCheckBox.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.startMenuShortcutCheckBox.Location = new System.Drawing.Point(149, 191);
+            this.startMenuShortcutCheckBox.Name = "startMenuShortcutCheckBox";
+            this.startMenuShortcutCheckBox.Size = new System.Drawing.Size(139, 19);
+            this.startMenuShortcutCheckBox.TabIndex = 8;
+            this.startMenuShortcutCheckBox.Text = "Start Menu Shortcut";
+            this.startMenuShortcutCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // networkFixCheckBox
+            // 
+            this.networkFixCheckBox.Checked = true;
+            this.networkFixCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.networkFixCheckBox.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.networkFixCheckBox.Location = new System.Drawing.Point(294, 191);
+            this.networkFixCheckBox.Name = "networkFixCheckBox";
+            this.networkFixCheckBox.Size = new System.Drawing.Size(140, 19);
+            this.networkFixCheckBox.TabIndex = 9;
+            this.networkFixCheckBox.Text = "Network Throttle Fix";
+            this.networkFixCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // progressBar
+            // 
+            this.progressBar.Location = new System.Drawing.Point(12, 219);
+            this.progressBar.Maximum = 1000;
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(431, 23);
+            this.progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.progressBar.TabIndex = 10;
+            // 
+            // developmentVersionCheckBox
+            // 
+            this.developmentVersionCheckBox.Checked = false;
+            this.developmentVersionCheckBox.AutoSize = true;
+            this.developmentVersionCheckBox.Location = new System.Drawing.Point(283, 116);
+            this.developmentVersionCheckBox.Name = "developmentVersionCheckBox";
+            this.developmentVersionCheckBox.Size = new System.Drawing.Size(127, 17);
+            this.developmentVersionCheckBox.TabIndex = 11;
+            this.developmentVersionCheckBox.Text = "Development Version";
+            this.developmentVersionCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // Installer
+            // 
+            this.AcceptButton = this.installButton;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.MidnightBlue;
+            this.ClientSize = new System.Drawing.Size(453, 463);
+            this.Controls.Add(this.developmentVersionCheckBox);
+            this.Controls.Add(this.progressBar);
+            this.Controls.Add(this.networkFixCheckBox);
+            this.Controls.Add(this.startMenuShortcutCheckBox);
+            this.Controls.Add(this.desktopShortcutCheckBox);
+            this.Controls.Add(this.pathButton);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.pathTextBox);
+            this.Controls.Add(this.installButton);
+            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.licenseTextBox);
+            this.ForeColor = System.Drawing.Color.White;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximizeBox = false;
+            this.MinimumSize = new System.Drawing.Size(450, 480);
+            this.Name = "Installer";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "Glest Installer";
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.ResumeLayout(false);
+            this.PerformLayout();
 
 		}
 	}
