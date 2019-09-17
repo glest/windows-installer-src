@@ -42,8 +42,14 @@ namespace GlestInstaller {
 		/// </summary>
 		public readonly int Data7zLineCount;
 
+        /// <summary>
+        /// Url for dev version of Glest.
+        /// </summary>
         public readonly Uri DevUrl;
 
+        /// <summary>
+        /// Directory for dev version of Glest.
+        /// </summary>
         public readonly string DevDir;
 
         /// <summary>
@@ -53,6 +59,8 @@ namespace GlestInstaller {
         /// <param name="binariesUrl">The url from where the binaries zip file is downloaded</param>
         /// <param name="binariesDir">The root directory inside the binaries zip file</param>
         /// <param name="binariesMD5">The binaries zip file MD5 hash</param>
+        /// <param name="devUrl">Url for development version of glest</param>
+        /// <param name="devDir">The root directory inside the development binaries zip file</param>
         /// <param name="dataUrl">The url from where the data zip file is downloaded</param>
         /// <param name="dataDir">The root directory inside the data zip file</param>
         /// <param name="dataMD5">The data zip file MD5 hash</param>

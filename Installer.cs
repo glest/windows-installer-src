@@ -241,11 +241,12 @@ namespace GlestInstaller {
 			ShowMessageBox(message.ToString(), "Installation Status", MessageBoxButtons.OK, icon);
 		}
 
-		/// <summary>
-		/// Configures the binaries to their respective path
-		/// </summary>
-		/// <param name="path">The path that contains the extracted binary archive</param>
-		public static void ConfigureBinaries(string path, bool devVersion) {
+        /// <summary>
+        /// Configures the binaries to their respective path
+        /// </summary>
+        /// <param name="path">The path that contains the extracted binary archive</param>
+        /// <param name="devVersion">Whether or not to install development version of Glest</param>
+        public static void ConfigureBinaries(string path, bool devVersion) {
 			string target;
             string dir;
             if (devVersion)
