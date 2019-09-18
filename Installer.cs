@@ -133,7 +133,9 @@ namespace GlestInstaller {
 					collection["data-dir"].Value.Trim(),
 					collection["data-md5"].Value.Trim().Replace("-", string.Empty).ToLower(),
 					long.Parse(collection["data-bytes"].Value.Trim()),
-					int.Parse(collection["data-7zlinecount"].Value.Trim()));
+					int.Parse(collection["data-7zlinecount"].Value.Trim()),
+                    new Uri(collection["data-dev"].Value.Trim()),
+                    collection["data-dev-dir"].Value.Trim());
 			}
 		}
 
@@ -268,16 +270,26 @@ namespace GlestInstaller {
 			File.Copy(Path.ChangeExtension(location, ".exe.config"), target + ".config", true);
 		}
 
-		/// <summary>
-		/// Configures the data to its respective path
-		/// </summary>
-		/// <param name="path">The path that contains the extracted data archive</param>
-		public static void ConfigureData(string path) {
+        /// <summary>
+        /// Configures the data to its respective path
+        /// </summary>
+        /// <param name="path">The path that contains the extracted data archive</param>
+        /// <param name="devVersion">Install development version option</param>
+        public static void ConfigureData(string path, bool devVersion) {
 			path += Path.DirectorySeparatorChar;
-			if (!string.Equals(Config.DataDir, "data", StringComparison.InvariantCultureIgnoreCase)) {
+            string dir;
+            if (devVersion)
+            {
+                dir = Config.DataDevDir;
+            }
+            else
+            {
+                dir = Config.DataDir;
+            }
+            if (!string.Equals(dir, "data", StringComparison.InvariantCultureIgnoreCase)) {
 				string target = path + "data";
 				DeleteFolderIfExists(target);
-				Directory.Move(path + Config.DataDir, target);
+				Directory.Move(path + dir, target);
 			}
 		}
 
@@ -306,7 +318,7 @@ namespace GlestInstaller {
 				dataClient.Proxy = null;
 				target = 900;
 				Exception downloadError = null;
-				if (File.Exists(dataPath) && CalculateMD5(dataPath) == Config.DataMD5) {
+				if (File.Exists(dataPath) && ((CalculateMD5(dataPath) == Config.DataMD5) || developmentVersionCheckBox.Checked)) {
 					dataResetEvent.Set();
 					SetProgress(start = target = 100);
 				} else {
@@ -331,7 +343,15 @@ namespace GlestInstaller {
 							downloadError = e.Error;
 						dataResetEvent.Set();
 					};
-					dataClient.DownloadFileAsync(Config.DataUrl, dataPath);
+                    if (developmentVersionCheckBox.Checked)
+                    {
+                        dataClient.DownloadFileAsync(Config.DataDevUrl, dataPath);
+                    }
+                    else
+                    {
+                        dataClient.DownloadFileAsync(Config.DataUrl, dataPath);
+                    }
+
 				}
 				if (File.Exists(binariesPath) && ((CalculateMD5(binariesPath) == Config.BinariesMD5) || developmentVersionCheckBox.Checked))
 					SetButtonText("Downloading data...\n(takes some time)");
@@ -382,10 +402,10 @@ namespace GlestInstaller {
 					if (closing)
 						Thread.Sleep(-1); //pause
 				}
-				if (CalculateMD5(dataPath) != Config.DataMD5)
+				if ((CalculateMD5(dataPath) != Config.DataMD5) && !developmentVersionCheckBox.Checked)
 					throw new WarningException("MD5 hash of data.zip does not match the one specified in config file");
 				Extract(dataPath, path, true);
-				ConfigureData(path);
+				ConfigureData(path, developmentVersionCheckBox.Checked);
 				target = 1000;
 				SetProgress(target);
 			} finally {
@@ -659,7 +679,15 @@ namespace GlestInstaller {
 			} catch (Exception e) {
 				warnings.Add("Could not delete " + Config.DataDir + ": " + ExceptionToString(e));
 			}
-		}
+            try
+            {
+                DeleteFolderIfExists(path + Path.DirectorySeparatorChar + Config.DataDevDir);
+            }
+            catch (Exception e)
+            {
+                warnings.Add("Could not delete " + Config.DataDevDir + ": " + ExceptionToString(e));
+            }
+        }
 
 		/// <summary>
 		/// Deletes the shortcuts

@@ -41,16 +41,22 @@ namespace GlestInstaller {
 		/// The target output line count of 7z
 		/// </summary>
 		public readonly int Data7zLineCount;
-
         /// <summary>
         /// Url for dev version of Glest.
         /// </summary>
         public readonly Uri DevUrl;
-
         /// <summary>
         /// Directory for dev version of Glest.
         /// </summary>
         public readonly string DevDir;
+        /// <summary>
+        /// The url from where the development data zip file is downloaded.
+        /// </summary>
+        public readonly Uri DataDevUrl;
+        /// <summary>
+        /// The root directory inside the development data zip file.
+        /// </summary>
+        public readonly string DataDevDir;
 
         /// <summary>
         /// Initializes a new configuration
@@ -66,7 +72,9 @@ namespace GlestInstaller {
         /// <param name="dataMD5">The data zip file MD5 hash</param>
         /// <param name="dataBytes">The number of bytes in the data zip file</param>
         /// <param name="data7zLineCount">The target output line count of 7z</param>
-        public ConfigParams(string version, Uri binariesUrl, string binariesDir, string binariesMD5, Uri devUrl, string devDir, Uri dataUrl, string dataDir, string dataMD5, long dataBytes, int data7zLineCount) {
+        /// <param name="dataDevUrl">The url from where the development data zip file is downloaded</param>
+        /// <param name="dataDevDir">The root directory inside the development data zip file</param>
+        public ConfigParams(string version, Uri binariesUrl, string binariesDir, string binariesMD5, Uri devUrl, string devDir, Uri dataUrl, string dataDir, string dataMD5, long dataBytes, int data7zLineCount, Uri dataDevUrl, string dataDevDir) {
 			Version = version;
 			BinariesUrl = binariesUrl;
 			BinariesDir = binariesDir;
@@ -80,6 +88,8 @@ namespace GlestInstaller {
             DataMD5 = dataMD5;
 			DataBytes = dataBytes;
 			Data7zLineCount = data7zLineCount;
+            DataDevUrl = dataDevUrl;
+            DataDevDir = dataDevDir;
 		}
 	}
 }
